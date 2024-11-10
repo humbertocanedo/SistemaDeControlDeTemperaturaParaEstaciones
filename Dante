@@ -1,0 +1,48 @@
+#include <DHT.h>
+#define DHTPIN D0      // Pin donde está conectado el sensor de temperatura
+#define DHTTYPE DHT11  
+#define RELAY_PIN D1   // Pin donde está conectado el relé del ventilador
+#define LED_PIN D2     // Pin donde está conectado el LED
+DHT dht(DHTPIN, DHTTYPE);
+void setup() {
+  Serial.begin(115200);
+  dht.begin();
+  pinMode(RELAY_PIN, OUTPUT);
+  pinMode(LED_PIN, OUTPUT);
+  // Asegúrate de que el relé y el LED estén apagados al inicio
+  digitalWrite(RELAY_PIN, LOW);
+  digitalWrite(LED_PIN, LOW);
+}
+void loop() {
+  // Espera unos segundos entre lecturas
+  delay(2000);
+    // Lee la temperatura
+  float t = dht.readTemperature(); // Lee la temperatura en grados Celsius
+    // Verifica si la lectura es válida
+  if (isnan(t)) {
+    Serial.println("Error al leer el sensor de temperatura");
+    return;
+  }
+    Serial.print("Temperatura: ");
+  Serial.print(t);
+  Serial.println(" °C");
+  // Si la temperatura es de 20 grados, activa el ventilador por 5 segundos
+  if (t == 20) {
+    digitalWrite(RELAY_PIN, HIGH); // Enciende el ventilador
+    Serial.println("Ventilador encendido.");
+    delay(5000); // Espera 5 segundos
+    digitalWrite(RELAY_PIN, LOW); // Apaga el ventilador
+    Serial.println("Ventilador apagado.");
+  }
+  
+  // Si la temperatura alcanza los 25 grados, enciende el LED y el ventilador
+  if (t >= 25) {
+    digitalWrite(RELAY_PIN, HIGH); // Enciende el ventilador
+    digitalWrite(LED_PIN, HIGH);   // Enciende el LED
+    Serial.println("Temperatura alta: ventilador y LED encendidos.");
+  } else {
+    digitalWrite(LED_PIN, LOW);    // Apaga el LED si la temperatura es menor a 25 grados
+    digitalWrite(RELAY_PIN, LOW);  // Asegúrate de apagar el ventilador
+    Serial.println("Temperatura normal: ventilador y LED apagados.");
+  }
+}
